@@ -1,0 +1,6 @@
+{
+    "git.ignoreLimitWarning": true,
+    "git.autoRepositoryDetection": true,
+    "git.autorefresh": true,
+    "git.enabled": false
+}
