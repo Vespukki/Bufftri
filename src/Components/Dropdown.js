@@ -4,41 +4,39 @@ import PropTypes from 'prop-types';
 export default class Dropdown extends React.Component
 {
   static propTypes = {
+    //changes app state current champion
     changeHandler: PropTypes.func,
+
     championArray: PropTypes.array
   }
   constructor(props) {
     super(props);
     this.state = {
-      champion: {}
+      //currently selected champ
     };
 
-    this.state.champion = this.props.championArray[0]
-
     this.handleOptionChange = this.handleOptionChange.bind(this)
-
-    this.props.changeHandler(this.state.champion)
   }
+
 
   handleOptionChange(e)
   {
     let champ = JSON.parse(e.target.value)
-    this.setState({champion: champ})
     this.props.changeHandler(champ)
   }
 
   render()
   {
-
     return (
       <div>
         <select id="dropdown" onChange={this.handleOptionChange}>
-          {this.props.championArray.map((option) => (
-            <option value={JSON.stringify(option)}> {option.name}</option>
+          {
+            //creates an option for every champion in the array
+            this.props.championArray.map((option) => (
+              <option value={JSON.stringify(option)}> {option.name}</option>
           ))}
         </select>
       </div>
     );
   }
 }
-

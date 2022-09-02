@@ -4,9 +4,6 @@ import React from 'react';
 import Dropdown from './Components/Dropdown';
 import championFile from "./12.16.1/data/en_US/champion.json"
 
-
-
-
 class App extends React.Component
 {
  
@@ -20,11 +17,11 @@ class App extends React.Component
     };
 
     this.state.attacker = this.state.championArray[0]
+
     this.handleAttackerChange = this.handleAttackerChange.bind(this)
-
-
   }
 
+  //called by dropdown
   handleAttackerChange(champ)
   {
     this.setState({attacker: champ})
