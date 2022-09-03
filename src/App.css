@@ -17,3 +17,11 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
+
+.App-row{
+  display: flex;
+}
+
+.App-column {
+  flex: 50%;
+}

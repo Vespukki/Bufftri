@@ -12,32 +12,40 @@ class App extends React.Component
     this.state = {
 
       championArray: getChampions(),
-      attacker: {},
+      attacker: {champ: {}, level: 10, attack: 0},
 
     };
 
-    this.state.attacker = this.state.championArray[0]
-
+    this.state.attacker.champ = this.state.championArray[0]
     this.handleAttackerChange = this.handleAttackerChange.bind(this)
+    this.handleADChange = this.handleADChange.bind(this)
   }
 
   //called by dropdown
-  handleAttackerChange(champ)
+  handleAttackerChange(newChamp)
   {
-    this.setState({attacker: champ})
+    let newAttacker = this.state.attacker
+
+    newAttacker.champ = newChamp
+
+    this.setState({attacker: newAttacker})
   }
 
-  componentDidUpdate(old)
+  //called by attack input
+  handleADChange(e)
   {
-    // alert(this.state.attacker.stats.attackdamage)
-    //TriSpellbladeDamage = getTriSpellbladeDamage(this.state.attacker)
-  }
+    let newAttacker = this.state.attacker
 
+    newAttacker.attack = e.target.value
+
+    this.setState({attacker: newAttacker})
+  }
 
   render()
   {
-    var TriSpellbladeDamage = getTriSpellbladeDamage(this.state.attacker);
-    var DSSpellbladeDamage = getDSSpellbladeDamage(this.state.attacker);
+
+    let TriSpellbladeDamage = getTriSpellbladeDamage(this.state.attacker);
+    let DSSpellbladeDamage = getDSSpellbladeDamage(this.state.attacker);
 
     return (
 
@@ -45,36 +53,46 @@ class App extends React.Component
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           
-          
           <Dropdown championArray={this.state.championArray} id="attacker" changeHandler={this.handleAttackerChange}/>
-          
+          current AD: <input type="number" id='currentAD' onChange={this.handleADChange}/>
 
-          <p>calculations assume level 10</p>
-          <p>{TriSpellbladeDamage}</p>
-          <p>{DSSpellbladeDamage}</p>
+          <p>calculations assume level 10 and max stacks of threefold</p>
+
+          <div className='App-row'>
+
+            <div className='App-column'>
+            <p>Triforce Spell blade damage: {TriSpellbladeDamage}</p>
+
+            </div>
+
+            <div className='App-column'>
+            <p>Sunderer Spell blade damage: {DSSpellbladeDamage}</p>
+
+            </div>
+
+          </div>
+
           </header>
       </div>
-  
-  
     );
-  
   }
 
-  
+  componentDidMount()
+  {
+    this.handleAttackerChange(this.state.championArray[0])
+  }
 }
 
 
 function getTriSpellbladeDamage(attacker)
 {
-  var level = 10
-  var baseAD = attacker.stats.attackdamage + (attacker.stats.attackdamageperlevel * level)
-
-  return baseAD * 2
+  let baseAD = attacker.champ.stats.attackdamage + (attacker.champ.stats.attackdamageperlevel * attacker.level)
+  return baseAD * 2.4
 }
 
-function getDSSpellbladeDamage()
+function getDSSpellbladeDamage(attacker)
 {
-  return 100
+  return attacker.attack
 }
 
 function getChampions()

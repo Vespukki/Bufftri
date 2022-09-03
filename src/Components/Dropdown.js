@@ -12,10 +12,10 @@ export default class Dropdown extends React.Component
   constructor(props) {
     super(props);
     this.state = {
-      //currently selected champ
     };
 
     this.handleOptionChange = this.handleOptionChange.bind(this)
+
   }
 
 
