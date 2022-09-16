@@ -12,15 +12,23 @@ class App extends React.Component
     this.state = {
 
       championArray: getChampions(),
-      attacker: {champ: {}, level: 10, attack: 0},
+      attacker: {champ: {}, level: 1, ad: 0},
+      defender: {champ: {}, level: 1, maxHp: 0},
+    }
 
-    };
 
     this.state.attacker.champ = this.state.championArray[0]
+    this.state.defender.champ = this.state.championArray[0]
+
     this.handleAttackerChange = this.handleAttackerChange.bind(this)
     this.handleADChange = this.handleADChange.bind(this)
+    this.handleAttackerLevelChange = this.handleAttackerLevelChange.bind(this)
+    this.handleDefenderChange = this.handleDefenderChange.bind(this)
+    this.handleDefenderLevelChange = this.handleDefenderLevelChange.bind(this)
+    this.handleHPChange = this.handleHPChange.bind(this)
   }
 
+  //#region Attacker Handlers
   //called by dropdown
   handleAttackerChange(newChamp)
   {
@@ -36,27 +44,83 @@ class App extends React.Component
   {
     let newAttacker = this.state.attacker
 
-    newAttacker.attack = e.target.value
+    newAttacker.ad = e.target.value
 
     this.setState({attacker: newAttacker})
   }
 
-  render()
+  //called by level input
+  handleAttackerLevelChange(e)
   {
+    let newAttacker = this.state.attacker
 
-    let TriSpellbladeDamage = getTriSpellbladeDamage(this.state.attacker);
-    let DSSpellbladeDamage = getDSSpellbladeDamage(this.state.attacker);
+    newAttacker.level = e.target.value
+
+    this.setState({attacker: newAttacker})
+  }
+
+//#endregion
+ 
+  //#region Defender Handlers
+  //called by dropdown
+  handleDefenderChange(newChamp)
+  {
+    let newDefender = this.state.defender
+
+    newDefender.champ = newChamp
+
+    this.setState({defender: newDefender})
+  }
+
+  //called by hp input
+  handleHPChange(e)
+  {
+    let newDefender = this.state.defender
+
+    newDefender.maxHp = e.target.value
+
+    this.setState({defender: newDefender})
+  }
+
+  //called by level input
+  handleDefenderLevelChange(e)
+  {
+    let newDefender = this.state.defender
+
+    newDefender.level = e.target.value
+
+    this.setState({defender: newDefender})
+  }
+
+//#endregion
+
+
+render()
+  {
+    let TriSpellbladeDamage = getTriSpellbladeDamage(this.state.attacker, this.state.defender);
+    let DSSpellbladeDamage = getDSSpellbladeDamage(this.state.attacker, this.state.defender);
 
     return (
 
       <div className="App">
         <header className="App-header">
+
+          
           <img src={logo} className="App-logo" alt="logo" />
           
-          <Dropdown championArray={this.state.championArray} id="attacker" changeHandler={this.handleAttackerChange}/>
-          current AD: <input type="number" id='currentAD' onChange={this.handleADChange}/>
+          Attacker: <header className='Attacker-header'>
+            <Dropdown championArray={this.state.championArray} id="attacker" changeHandler={this.handleAttackerChange}/>
+            Current AD: <input type="number" id='currentAD' onChange={this.handleADChange}/>
+            Current Level: <input type="number" id='currentLevel' onChange={this.handleAttackerLevelChange}/>
+          </header>
 
-          <p>calculations assume level 10 and max stacks of threefold</p>
+          Defender: <header className='Defender-header'>
+            <Dropdown championArray={this.state.championArray} id="defender" changeHandler={this.handleDefenderChange}/>
+            Max HP: <input type="number" id='defenderMaxHP' onChange={this.handleHPChange}/>
+            Current Level: <input type="number" id='currentDefenderLevel' onChange={this.handleDefenderLevelChange}/>
+
+          </header>
+          <p>calculations assume zero stacks of threefold</p>
 
           <div className='App-row'>
 
@@ -83,16 +147,19 @@ class App extends React.Component
   }
 }
 
-
-function getTriSpellbladeDamage(attacker)
+function getBaseAD(unit)
 {
-  let baseAD = attacker.champ.stats.attackdamage + (attacker.champ.stats.attackdamageperlevel * attacker.level)
-  return baseAD * 2.4
+  return unit.champ.stats.attackdamage + (unit.champ.stats.attackdamageperlevel * unit.level)
 }
 
-function getDSSpellbladeDamage(attacker)
+function getTriSpellbladeDamage(attacker, defender)
 {
-  return attacker.attack
+  return getBaseAD(attacker) * 2
+}
+
+function getDSSpellbladeDamage(attacker, defender)
+{
+  return Math.max(Math.round((1.25 * getBaseAD(attacker)) + ( .06 * defender.maxHp)), getBaseAD(attacker) * 1.5)
 }
 
 function getChampions()

@@ -20,6 +20,7 @@
 
 .App-row{
   display: flex;
+  width: 80%;
 }
 
 .App-column {
