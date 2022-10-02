@@ -3,10 +3,14 @@ import './App.css';
 import React from 'react';
 import Dropdown from './Components/Dropdown';
 import championFile from "./12.16.1/data/en_US/champion.json"
+import axios from 'axios';
+
+const API_KEY = "RGAPI-cb5bc134-b5a2-41d6-a886-39ea64d26ed1"
 
 class App extends React.Component
 {
  
+
   constructor(props) {
     super(props);
     this.state = {
@@ -59,7 +63,7 @@ class App extends React.Component
     this.setState({attacker: newAttacker})
   }
 
-//#endregion
+  //#endregion
  
   //#region Defender Handlers
   //called by dropdown
@@ -92,11 +96,62 @@ class App extends React.Component
     this.setState({defender: newDefender})
   }
 
-//#endregion
+  //#endregion
 
-
-render()
+  searchForChampionMastery()
   {
+    var summonerID = "";
+    
+    axios.get("https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/vespukki?api_key=" + API_KEY).then(function(response) {
+      summonerID = response.data.id;
+      var APICallString = "https://na1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/" + summonerID + "/by-champion/" + 114 + "?api_key=" + API_KEY;
+      axios.get(APICallString).then(function(response) {
+        alert(response.data.championPoints)
+      })
+    });
+  }
+
+  //currently sucks, dont use this just copy/paste it whereever you need it
+  getSummonerId()
+  {
+    let stringToReturn = "ID_ERROR"
+    
+    axios.get("https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/vespukki?api_key=" + API_KEY).then(function(response) {
+      //alert(response.data.id);
+      stringToReturn = response.data.id;
+      return stringToReturn;
+    }).catch(function(error){
+      return error
+    });
+
+    return("SHOULDN'T HAVE MADE IT TO HERE")
+
+    
+  }
+
+  searchTotalGamesPlayedOnChampion(name)
+  {
+    axios.get("https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + name + "?api_key=" + API_KEY).then(function(response) {
+        
+      
+      let id = response.data.puuid;
+      //alert(id)
+      
+      let APICallString = "https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/" + id + "/ids/?api_key=" + API_KEY;
+      axios.get(APICallString).then(function(response) {
+        alert(response.data)
+      }).catch(function(error) {
+        alert(error);
+      })  
+    })
+
+    
+  }
+
+   
+  render()
+  {
+    this.searchTotalGamesPlayedOnChampion("Vespukki");
     let TriSpellbladeDamage = getTriSpellbladeDamage(this.state.attacker, this.state.defender);
     let DSSpellbladeDamage = getDSSpellbladeDamage(this.state.attacker, this.state.defender);
 
