@@ -6,10 +6,10 @@ import championFile from "./12.16.1/data/en_US/champion.json"
 import axios from 'axios';
 
 const API_KEY = "RGAPI-cb5bc134-b5a2-41d6-a886-39ea64d26ed1"
+var enteredSummonerName = "";
 
 class App extends React.Component
 {
- 
 
   constructor(props) {
     super(props);
@@ -18,6 +18,8 @@ class App extends React.Component
       championArray: getChampions(),
       attacker: {champ: {}, level: 1, ad: 0},
       defender: {champ: {}, level: 1, maxHp: 0},
+      totalTimes: {sunderer: 0, tri: 0}
+
     }
 
 
@@ -30,6 +32,9 @@ class App extends React.Component
     this.handleDefenderChange = this.handleDefenderChange.bind(this)
     this.handleDefenderLevelChange = this.handleDefenderLevelChange.bind(this)
     this.handleHPChange = this.handleHPChange.bind(this)
+    this.handleNameEnter= this.handleNameEnter.bind(this)
+    this.handleNameChange = this.handleNameChange.bind(this)
+
   }
 
   //#region Attacker Handlers
@@ -98,6 +103,19 @@ class App extends React.Component
 
   //#endregion
 
+  handleNameChange(e)
+  {
+    enteredSummonerName = e.target.value;
+  }
+
+  handleNameEnter(e)
+  {
+    this.setState({totalTimes: {sunderer: 0, tri: 0}})
+    this.searchTotalItemsBuilt(enteredSummonerName)
+  }
+
+ //this.searchTotalItemsBuilt(enteredSummonerName, totalTimes), alert("handleNameEnter error")
+
   searchForChampionMastery()
   {
     var summonerID = "";
@@ -111,47 +129,72 @@ class App extends React.Component
     });
   }
 
-  //currently sucks, dont use this just copy/paste it whereever you need it
-  getSummonerId()
+  searchSummonerByName(name)
   {
-    let stringToReturn = "ID_ERROR"
+    return axios.get("https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + name + "?api_key=" + API_KEY)
     
-    axios.get("https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/vespukki?api_key=" + API_KEY).then(function(response) {
-      //alert(response.data.id);
-      stringToReturn = response.data.id;
-      return stringToReturn;
-    }).catch(function(error){
-      return error
-    });
-
-    return("SHOULDN'T HAVE MADE IT TO HERE")
-
-    
+    // .then(response => {
+    //   callback(response.data.puuid)
+    // })
   }
 
-  searchTotalGamesPlayedOnChampion(name)
+  searchMatchHistoryByPuuid(id)
   {
-    axios.get("https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + name + "?api_key=" + API_KEY).then(function(response) {
-        
-      
-      let id = response.data.puuid;
-      //alert(id)
-      
-      let APICallString = "https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/" + id + "/ids/?api_key=" + API_KEY;
-      axios.get(APICallString).then(function(response) {
-        alert(response.data)
-      }).catch(function(error) {
-        alert(error);
-      })  
-    })
+    let APICallString = "https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/" + id + "/ids/?api_key=" + API_KEY + "&start=0&count=5";
+    return axios.get(APICallString)
+  }
 
-    
+  searchMatchByMatchId(id)
+  {
+    return axios.get("https://americas.api.riotgames.com/lol/match/v5/matches/" + id + "?api_key=" + API_KEY)
+  }
+
+  async searchTotalItemsBuilt(name)
+  {
+    this.searchSummonerByName(name).then(summoner => {
+      this.searchMatchHistoryByPuuid(summoner.data.puuid).then(matchHistory => {
+        for(let matchIndex = 0; matchIndex < matchHistory.data.length; matchIndex++)
+        {
+          this.searchMatchByMatchId(matchHistory.data[matchIndex]).then(match => {
+            for(let participantIndex = 0; participantIndex < match.data.info.participants.length; participantIndex++)
+            {
+              for(let itemIndex = 0; itemIndex < 6; itemIndex++)
+              {
+                if(match.data.info.participants[participantIndex]["item" + itemIndex] === 6632) //sunderer
+                {
+                  let newTotalTimes = this.state.totalTimes
+
+                  newTotalTimes.sunderer++
+
+                  this.setState({totalTimes: newTotalTimes})
+                }
+                else if(match.data.info.participants[participantIndex]["item" + itemIndex] === 3078)
+                {
+                  let newTotalTimes = this.state.totalTimes
+
+                  newTotalTimes.tri++
+
+                  this.setState({totalTimes: newTotalTimes})
+                }
+              }
+            }
+          }).catch(error => {
+            alert("error with searchMatchByMatchId: \n" + error)
+          })
+        }
+
+      }).catch( error => {
+        alert("error with searchMatchHistoryByPuuid: \n" + error)
+      })
+    }).catch( error => {
+      alert("error with searchSummonerByName: \n" + error)
+    })
   }
 
    
   render()
   {
-    this.searchTotalGamesPlayedOnChampion("Vespukki");
+    
     let TriSpellbladeDamage = getTriSpellbladeDamage(this.state.attacker, this.state.defender);
     let DSSpellbladeDamage = getDSSpellbladeDamage(this.state.attacker, this.state.defender);
 
@@ -163,6 +206,15 @@ class App extends React.Component
           
           <img src={logo} className="App-logo" alt="logo" />
           
+          Enter summoner name to see how many times sunderer and triforce have been built in your last 15 games: <header className='Name-header'>
+          <input type="text" id='summonerName' onChange={this.handleNameChange}/>
+          <button onClick={this.handleNameEnter}>Enter</button>
+          <p className='totalTimesText'>Total Sunderers built: {this.state.totalTimes.sunderer}</p>
+          <p className='totalTimesText'>Total Triforces built: {this.state.totalTimes.tri}</p>
+
+
+          </header>
+
           Attacker: <header className='Attacker-header'>
             <Dropdown championArray={this.state.championArray} id="attacker" changeHandler={this.handleAttackerChange}/>
             Current AD: <input type="number" id='currentAD' onChange={this.handleADChange}/>
