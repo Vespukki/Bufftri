@@ -16,8 +16,8 @@ class App extends React.Component
     this.state = {
 
       championArray: getChampions(),
-      attacker: {champ: {}, level: 1, ad: 0},
-      defender: {champ: {}, level: 1, maxHp: 0},
+      attacker: {champ: {}, level: 1},
+      defender: {champ: {}, maxHp: 0},
       totalTimes: {sunderer: 0, tri: 0}
 
     }
@@ -27,10 +27,8 @@ class App extends React.Component
     this.state.defender.champ = this.state.championArray[0]
 
     this.handleAttackerChange = this.handleAttackerChange.bind(this)
-    this.handleADChange = this.handleADChange.bind(this)
     this.handleAttackerLevelChange = this.handleAttackerLevelChange.bind(this)
     this.handleDefenderChange = this.handleDefenderChange.bind(this)
-    this.handleDefenderLevelChange = this.handleDefenderLevelChange.bind(this)
     this.handleHPChange = this.handleHPChange.bind(this)
     this.handleNameEnter= this.handleNameEnter.bind(this)
     this.handleNameChange = this.handleNameChange.bind(this)
@@ -44,16 +42,6 @@ class App extends React.Component
     let newAttacker = this.state.attacker
 
     newAttacker.champ = newChamp
-
-    this.setState({attacker: newAttacker})
-  }
-
-  //called by attack input
-  handleADChange(e)
-  {
-    let newAttacker = this.state.attacker
-
-    newAttacker.ad = e.target.value
 
     this.setState({attacker: newAttacker})
   }
@@ -91,15 +79,6 @@ class App extends React.Component
     this.setState({defender: newDefender})
   }
 
-  //called by level input
-  handleDefenderLevelChange(e)
-  {
-    let newDefender = this.state.defender
-
-    newDefender.level = e.target.value
-
-    this.setState({defender: newDefender})
-  }
 
   //#endregion
 
@@ -140,7 +119,7 @@ class App extends React.Component
 
   searchMatchHistoryByPuuid(id)
   {
-    let APICallString = "https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/" + id + "/ids/?api_key=" + API_KEY + "&start=0&count=5";
+    let APICallString = "https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/" + id + "/ids/?api_key=" + API_KEY + "&start=0&count=15";
     return axios.get(APICallString)
   }
 
@@ -217,17 +196,15 @@ class App extends React.Component
 
           Attacker: <header className='Attacker-header'>
             <Dropdown championArray={this.state.championArray} id="attacker" changeHandler={this.handleAttackerChange}/>
-            Current AD: <input type="number" id='currentAD' onChange={this.handleADChange}/>
             Current Level: <input type="number" id='currentLevel' onChange={this.handleAttackerLevelChange}/>
           </header>
 
           Defender: <header className='Defender-header'>
             <Dropdown championArray={this.state.championArray} id="defender" changeHandler={this.handleDefenderChange}/>
             Max HP: <input type="number" id='defenderMaxHP' onChange={this.handleHPChange}/>
-            Current Level: <input type="number" id='currentDefenderLevel' onChange={this.handleDefenderLevelChange}/>
 
           </header>
-          <p>calculations assume zero stacks of threefold</p>
+          <p>calculations assume max stacks of threefold</p>
 
           <div className='App-row'>
 
@@ -261,7 +238,7 @@ function getBaseAD(unit)
 
 function getTriSpellbladeDamage(attacker, defender)
 {
-  return getBaseAD(attacker) * 2
+  return getBaseAD(attacker) * 2.4
 }
 
 function getDSSpellbladeDamage(attacker, defender)
